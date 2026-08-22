@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
         TextView title = new TextView(this);
-        title.setText("PayPal 收款提醒 · 手机端");
+        title.setText("PayPal 收款 → BOA · 手机端");
         title.setTextSize(22);
         title.setTextColor(Color.WHITE);
         title.setGravity(Gravity.CENTER);
@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
         root.addView(testButton, matchWrap(dp(16)));
 
         TextView note = new TextView(this);
-        note.setText("只监听官方 PayPal Android App 的收款类通知，并通过 Wear OS Data Layer 发给同一配对手表。不会读取 PayPal 密码，也不会自动接受或操作交易。");
+        note.setText("只监听官方 PayPal Android App 的收款类通知，并通过 Wear OS Data Layer 发给配对手表。手表收到提醒后可直接进入 PayPal 官方提现页面；BOA 需要提前在 PayPal 中关联。不会读取 PayPal 或 BOA 密码，也不会自动确认银行转账。");
         note.setTextSize(13);
         note.setTextColor(0xFFBDBDBD);
         note.setGravity(Gravity.CENTER);
