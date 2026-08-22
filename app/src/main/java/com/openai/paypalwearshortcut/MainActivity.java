@@ -10,6 +10,7 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -89,11 +90,17 @@ public class MainActivity extends Activity {
         saveButton.setOnClickListener(v -> saveCredential());
         root.addView(saveButton, matchWrap(dp(8)));
 
-        Button enableButton = new Button(this);
-        enableButton.setText("启用本机自动填充");
-        enableButton.setAllCaps(false);
-        enableButton.setOnClickListener(v -> requestAutofillEnable());
-        root.addView(enableButton, matchWrap(dp(8)));
+        Button enableKeyboardButton = new Button(this);
+        enableKeyboardButton.setText("1. 启用 PayPal 填充键盘");
+        enableKeyboardButton.setAllCaps(false);
+        enableKeyboardButton.setOnClickListener(v -> openKeyboardSettings());
+        root.addView(enableKeyboardButton, matchWrap(dp(8)));
+
+        Button chooseKeyboardButton = new Button(this);
+        chooseKeyboardButton.setText("2. 选择 PayPal 填充键盘");
+        chooseKeyboardButton.setAllCaps(false);
+        chooseKeyboardButton.setOnClickListener(v -> showKeyboardPicker());
+        root.addView(chooseKeyboardButton, matchWrap(dp(8)));
 
         Button deleteButton = new Button(this);
         deleteButton.setText("删除已保存登录");
@@ -114,7 +121,7 @@ public class MainActivity extends Activity {
         root.addView(payButton, matchWrap(dp(12)));
 
         TextView note = new TextView(this);
-        note.setText("密码由 Android Keystore + AES-GCM 加密，只保存在这块手表本机。本 App 不申请网络权限，只会给 PayPal 登录页提供自动填充。最终付款仍由 PayPal 官方页面确认。");
+        note.setText("Samsung Browser 在这块手表上没有调用 Android Autofill，所以这一版改用本机输入法。打开 PayPal 后点登录框，选择 PayPal Fill Keyboard，再点“填入账号”或“填入密码”。密码由 Android Keystore + AES-GCM 加密，只保存在手表本机；本 App 不申请网络权限。请只在 PayPal 官方页面使用填充键盘。");
         note.setTextSize(11);
         note.setTextColor(0xFF9E9E9E);
         note.setGravity(Gravity.CENTER);
@@ -166,13 +173,24 @@ public class MainActivity extends Activity {
         toast("已删除本机保存的登录");
     }
 
-    private void requestAutofillEnable() {
+    private void openKeyboardSettings() {
         try {
-            Intent intent = new Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE);
-            intent.setData(Uri.parse("package:" + getPackageName()));
-            startActivity(intent);
+            startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS));
         } catch (Exception e) {
-            toast("请在手表设置的密码/自动填充中启用“PayPal 本机自动填充”");
+            toast("请在手表设置里启用 PayPal Fill Keyboard");
+        }
+    }
+
+    private void showKeyboardPicker() {
+        try {
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showInputMethodPicker();
+            } else {
+                toast("请在输入法设置中选择 PayPal Fill Keyboard");
+            }
+        } catch (Exception e) {
+            toast("请在输入法设置中选择 PayPal Fill Keyboard");
         }
     }
 
