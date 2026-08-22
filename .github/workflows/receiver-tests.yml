@@ -1,0 +1,104 @@
+name: PayPal Receiver Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  unit-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Unit tests and build both APKs
+        run: |
+          gradle \
+            :receiver-mobile:testDebugUnitTest \
+            :receiver-wear:testDebugUnitTest \
+            :receiver-mobile:assembleDebug \
+            :receiver-wear:assembleDebug \
+            --stacktrace
+      - name: Verify phone and watch share application ID
+        run: |
+          grep -q "applicationId 'com.openai.paypalreceiver'" receiver-mobile/build.gradle
+          grep -q "applicationId 'com.openai.paypalreceiver'" receiver-wear/build.gradle
+
+  phone-api-35:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run phone UI tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics
+          disable-animations: true
+          script: gradle :receiver-mobile:connectedDebugAndroidTest --stacktrace
+
+  wear-os:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Wear OS 5.1 / API 35
+            api_level: 35
+            system_image: 35-ext15
+            target: android-wear
+          - label: Wear OS 6 / API 36
+            api_level: 36
+            system_image: 36
+            target: android-wear-signed
+    name: ${{ matrix.label }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run Wear receiver UI tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api_level }}
+          system-image-api-level: ${{ matrix.system_image }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          cores: 2
+          ram-size: 2048M
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics
+          disable-animations: true
+          script: gradle :receiver-wear:connectedDebugAndroidTest --stacktrace

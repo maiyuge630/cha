@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "PayPalWearShortcut"
 include ':app'
+include ':receiver-mobile'
+include ':receiver-wear'
