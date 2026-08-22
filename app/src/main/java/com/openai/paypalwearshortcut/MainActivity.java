@@ -1,6 +1,7 @@
 package com.openai.paypalwearshortcut;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -16,8 +17,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class MainActivity extends Activity {
+    private static final String SAMSUNG_INTERNET_PACKAGE = "com.sec.android.app.sbrowser";
+
     private EditText recipientInput;
     private EditText amountInput;
 
@@ -50,7 +54,7 @@ public class MainActivity extends Activity {
         root.addView(currency, matchWrap(dp(18)));
 
         recipientInput = new EditText(this);
-        recipientInput.setHint("PayPal.Me 用户名");
+        recipientInput.setHint("PayPal.Me 用户名 / 链接");
         recipientInput.setSingleLine(true);
         recipientInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         root.addView(recipientInput, matchWrap(dp(10)));
@@ -62,13 +66,13 @@ public class MainActivity extends Activity {
         root.addView(amountInput, matchWrap(dp(16)));
 
         Button payButton = new Button(this);
-        payButton.setText("用 PayPal 继续");
+        payButton.setText("仅在手表上付款");
         payButton.setAllCaps(false);
-        payButton.setOnClickListener(v -> openPayPal());
+        payButton.setOnClickListener(v -> openPayPalOnWatch());
         root.addView(payButton, matchWrap(dp(12)));
 
         TextView note = new TextView(this);
-        note.setText("登录和最终付款确认均在 PayPal 官方页面完成。本应用不保存密码或银行卡信息。");
+        note.setText("只会调用手表本机的 Samsung Internet。不会把付款页面发送到手机。登录和最终确认仍由 PayPal 官方页面完成。");
         note.setTextSize(12);
         note.setTextColor(0xFF9E9E9E);
         note.setGravity(Gravity.CENTER);
@@ -77,23 +81,21 @@ public class MainActivity extends Activity {
         setContentView(scroll);
     }
 
-    private void openPayPal() {
-        String recipient = recipientInput.getText().toString().trim();
+    private void openPayPalOnWatch() {
+        String recipient = normalizeRecipient(recipientInput.getText().toString());
         String amountRaw = amountInput.getText().toString().trim();
 
-        if (recipient.isEmpty()) {
-            toast("请输入 PayPal.Me 用户名");
-            return;
-        }
-        if (!recipient.matches("[A-Za-z0-9._-]+")) {
-            toast("用户名格式不正确");
+        if (recipient == null || !recipient.matches("[A-Za-z0-9]{1,20}")) {
+            toast("请输入正确的 PayPal.Me 用户名或链接");
             return;
         }
 
         final BigDecimal amount;
         try {
             amount = new BigDecimal(amountRaw);
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) throw new NumberFormatException();
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new NumberFormatException();
+            }
         } catch (Exception e) {
             toast("请输入正确的美元金额");
             return;
@@ -101,17 +103,55 @@ public class MainActivity extends Activity {
 
         String amountText = amount.stripTrailingZeros().toPlainString();
         Uri uri = Uri.parse("https://www.paypal.me/" + Uri.encode(recipient) + "/" + Uri.encode(amountText + "USD"));
+
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.setPackage(SAMSUNG_INTERNET_PACKAGE);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
 
         try {
             startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            toast("请先在手表上安装 Samsung Internet");
         } catch (Exception e) {
-            toast("手表上没有可打开网页的应用");
+            toast("无法在手表浏览器打开 PayPal");
         }
     }
 
+    private String normalizeRecipient(String raw) {
+        if (raw == null) return null;
+        String value = raw.trim();
+        if (value.isEmpty()) return null;
+
+        while (value.startsWith("@")) {
+            value = value.substring(1).trim();
+        }
+
+        String lower = value.toLowerCase();
+        if (lower.startsWith("paypal.me/") || lower.startsWith("www.paypal.me/")) {
+            value = "https://" + value;
+            lower = value.toLowerCase();
+        }
+
+        if (lower.startsWith("http://") || lower.startsWith("https://")) {
+            try {
+                Uri parsed = Uri.parse(value);
+                String host = parsed.getHost();
+                if (host == null || !(host.equalsIgnoreCase("paypal.me") || host.equalsIgnoreCase("www.paypal.me"))) {
+                    return null;
+                }
+                List<String> segments = parsed.getPathSegments();
+                if (segments.isEmpty()) return null;
+                value = segments.get(0);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        return value.trim();
+    }
+
     private void toast(String text) {
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
     }
 
     private LinearLayout.LayoutParams matchWrap(int bottomMargin) {
