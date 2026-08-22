@@ -42,9 +42,12 @@ final class ReceiveNotifier {
     static String composeContent(String title, String text) {
         String cleanTitle = title == null ? "" : title.trim();
         String cleanText = text == null ? "" : text.trim();
-        if (cleanTitle.isEmpty() || "PayPal".equalsIgnoreCase(cleanTitle)) return cleanText;
-        if (cleanText.isEmpty()) return cleanTitle;
-        return cleanTitle + " · " + cleanText;
+        String payment;
+        if (cleanTitle.isEmpty() || "PayPal".equalsIgnoreCase(cleanTitle)) payment = cleanText;
+        else if (cleanText.isEmpty()) payment = cleanTitle;
+        else payment = cleanTitle + " · " + cleanText;
+        if (payment.isEmpty()) payment = "收到一笔 PayPal 款项";
+        return payment + "\n点此提现到 BOA";
     }
 
     private static void show(Context context, String title, String text, long postedAt) {
@@ -53,7 +56,7 @@ final class ReceiveNotifier {
         ensureChannel(manager);
 
         Intent openIntent = new Intent(context, MainActivity.class)
-                .putExtra(MainActivity.EXTRA_OPEN_PAYPAL, true)
+                .putExtra(MainActivity.EXTRA_OPEN_WITHDRAW, true)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context,
@@ -66,7 +69,7 @@ final class ReceiveNotifier {
                 ? new Notification.Builder(context, CHANNEL_ID)
                 : new Notification.Builder(context);
         builder.setSmallIcon(android.R.drawable.stat_notify_more)
-                .setContentTitle("PayPal 收款")
+                .setContentTitle("PayPal 收款 · 提现到 BOA")
                 .setContentText(content)
                 .setStyle(new Notification.BigTextStyle().bigText(content))
                 .setContentIntent(pendingIntent)
@@ -97,9 +100,9 @@ final class ReceiveNotifier {
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
-                    "PayPal 收款提醒",
+                    "PayPal 收款 → BOA",
                     NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("来自手机 PayPal 官方通知的收款提醒");
+            channel.setDescription("收到 PayPal 款项后快速进入 BOA 提现流程");
             manager.createNotificationChannel(channel);
         }
     }
