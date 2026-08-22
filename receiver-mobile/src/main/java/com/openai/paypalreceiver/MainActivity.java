@@ -1,7 +1,6 @@
 package com.openai.paypalreceiver;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -80,8 +79,9 @@ public class MainActivity extends Activity {
     }
 
     private void refreshStatus() {
-        boolean enabled = NotificationManager.getEnabledNotificationListenerPackages(this)
-                .contains(getPackageName());
+        String enabledListeners = Settings.Secure.getString(
+                getContentResolver(), "enabled_notification_listeners");
+        boolean enabled = enabledListeners != null && enabledListeners.contains(getPackageName());
         statusView.setText(enabled
                 ? "通知访问：已开启 ✓"
                 : "通知访问：未开启\n请点下面按钮，只需设置一次");
