@@ -17,12 +17,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public class MainActivity extends Activity {
     private static final String SAMSUNG_INTERNET_PACKAGE = "com.sec.android.app.sbrowser";
+    private static final String FIXED_RECIPIENT = "213776821";
 
-    private EditText recipientInput;
     private EditText amountInput;
 
     @Override
@@ -44,7 +43,14 @@ public class MainActivity extends Activity {
         title.setTextSize(22);
         title.setTextColor(Color.WHITE);
         title.setGravity(Gravity.CENTER);
-        root.addView(title, matchWrap(dp(8)));
+        root.addView(title, matchWrap(dp(10)));
+
+        TextView recipient = new TextView(this);
+        recipient.setText("固定收款人：" + FIXED_RECIPIENT);
+        recipient.setTextSize(16);
+        recipient.setTextColor(Color.WHITE);
+        recipient.setGravity(Gravity.CENTER);
+        root.addView(recipient, matchWrap(dp(6)));
 
         TextView currency = new TextView(this);
         currency.setText("固定币种：USD 美元");
@@ -52,12 +58,6 @@ public class MainActivity extends Activity {
         currency.setTextColor(0xFFBDBDBD);
         currency.setGravity(Gravity.CENTER);
         root.addView(currency, matchWrap(dp(18)));
-
-        recipientInput = new EditText(this);
-        recipientInput.setHint("PayPal.Me 用户名 / 链接");
-        recipientInput.setSingleLine(true);
-        recipientInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-        root.addView(recipientInput, matchWrap(dp(10)));
 
         amountInput = new EditText(this);
         amountInput.setHint("金额，例如 25.00");
@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
         root.addView(payButton, matchWrap(dp(12)));
 
         TextView note = new TextView(this);
-        note.setText("只会调用手表本机的 Samsung Internet。不会把付款页面发送到手机。登录和最终确认仍由 PayPal 官方页面完成。");
+        note.setText("收款人已锁定为 213776821，不能修改。登录和最终付款确认仍由 PayPal 官方页面完成。");
         note.setTextSize(12);
         note.setTextColor(0xFF9E9E9E);
         note.setGravity(Gravity.CENTER);
@@ -82,13 +82,7 @@ public class MainActivity extends Activity {
     }
 
     private void openPayPalOnWatch() {
-        String recipient = normalizeRecipient(recipientInput.getText().toString());
         String amountRaw = amountInput.getText().toString().trim();
-
-        if (recipient == null || !recipient.matches("[A-Za-z0-9]{1,20}")) {
-            toast("请输入正确的 PayPal.Me 用户名或链接");
-            return;
-        }
 
         final BigDecimal amount;
         try {
@@ -102,7 +96,7 @@ public class MainActivity extends Activity {
         }
 
         String amountText = amount.stripTrailingZeros().toPlainString();
-        Uri uri = Uri.parse("https://www.paypal.me/" + Uri.encode(recipient) + "/" + Uri.encode(amountText + "USD"));
+        Uri uri = Uri.parse("https://www.paypal.me/" + FIXED_RECIPIENT + "/" + Uri.encode(amountText + "USD"));
 
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.setPackage(SAMSUNG_INTERNET_PACKAGE);
@@ -115,39 +109,6 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             toast("无法在手表浏览器打开 PayPal");
         }
-    }
-
-    private String normalizeRecipient(String raw) {
-        if (raw == null) return null;
-        String value = raw.trim();
-        if (value.isEmpty()) return null;
-
-        while (value.startsWith("@")) {
-            value = value.substring(1).trim();
-        }
-
-        String lower = value.toLowerCase();
-        if (lower.startsWith("paypal.me/") || lower.startsWith("www.paypal.me/")) {
-            value = "https://" + value;
-            lower = value.toLowerCase();
-        }
-
-        if (lower.startsWith("http://") || lower.startsWith("https://")) {
-            try {
-                Uri parsed = Uri.parse(value);
-                String host = parsed.getHost();
-                if (host == null || !(host.equalsIgnoreCase("paypal.me") || host.equalsIgnoreCase("www.paypal.me"))) {
-                    return null;
-                }
-                List<String> segments = parsed.getPathSegments();
-                if (segments.isEmpty()) return null;
-                value = segments.get(0);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        return value.trim();
     }
 
     private void toast(String text) {
