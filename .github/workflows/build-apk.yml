@@ -24,6 +24,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: PayPalWearShortcut-USD-v0.3.0
+          name: PayPalWearShortcut-USD-v0.4.0-watch-only
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
