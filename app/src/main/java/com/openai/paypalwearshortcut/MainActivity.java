@@ -2,7 +2,6 @@ package com.openai.paypalwearshortcut;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -11,7 +10,6 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.ViewGroup;
-import android.view.autofill.AutofillManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -174,11 +172,7 @@ public class MainActivity extends Activity {
             intent.setData(Uri.parse("package:" + getPackageName()));
             startActivity(intent);
         } catch (Exception e) {
-            try {
-                startActivity(new Intent(Settings.ACTION_AUTOFILL_SETTINGS));
-            } catch (Exception ignored) {
-                toast("请在设置中启用“PayPal USD”的自动填充服务");
-            }
+            toast("请在手表设置的密码/自动填充中启用“PayPal 本机自动填充”");
         }
     }
 
