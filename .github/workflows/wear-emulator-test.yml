@@ -28,9 +28,20 @@ jobs:
             exit 1
           fi
 
-  wear-os-5-1:
+  wear-os:
+    name: ${{ matrix.label }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Wear OS 5.1 / API 35
+            api_level: 35
+            system_image: 35-ext15
+          - label: Wear OS 6 / API 36
+            api_level: 36
+            system_image: 36
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
@@ -45,15 +56,15 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Run UI tests on Wear OS 5.1 emulator
+      - name: Run UI tests on ${{ matrix.label }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
-          system-image-api-level: 35-ext15
+          api-level: ${{ matrix.api_level }}
+          system-image-api-level: ${{ matrix.system_image }}
           target: android-wear
           arch: x86_64
           cores: 2
           ram-size: 2048M
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-metrics
           disable-animations: true
           script: gradle :app:connectedDebugAndroidTest --stacktrace
