@@ -14,7 +14,7 @@ import android.service.autofill.SaveInfo;
 import android.service.autofill.SaveRequest;
 import android.text.InputType;
 import android.util.Pair;
-import android.view.View;
+import android.view.ViewStructure;
 import android.view.autofill.AutofillId;
 import android.view.autofill.AutofillValue;
 import android.widget.RemoteViews;
@@ -179,7 +179,7 @@ public class PayPalAutofillService extends AutofillService {
             }
         }
 
-        AssistStructure.ViewNode.HtmlInfo html = node.getHtmlInfo();
+        ViewStructure.HtmlInfo html = node.getHtmlInfo();
         if (html != null && html.getAttributes() != null) {
             for (Pair<String, String> attr : html.getAttributes()) {
                 String key = lower(attr.first);
