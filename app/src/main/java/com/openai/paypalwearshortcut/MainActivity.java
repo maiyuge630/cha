@@ -19,7 +19,7 @@ import android.widget.Toast;
 import java.math.BigDecimal;
 
 public class MainActivity extends Activity {
-    private static final String SAMSUNG_INTERNET_PACKAGE = "com.sec.android.app.sbrowser";
+    private static final String ROBOFORM_PACKAGE = "com.siber.roboform";
     private static final String FIXED_RECIPIENT = "2137765821";
 
     private EditText amountInput;
@@ -66,13 +66,13 @@ public class MainActivity extends Activity {
         root.addView(amountInput, matchWrap(dp(16)));
 
         Button payButton = new Button(this);
-        payButton.setText("仅在手表上付款");
+        payButton.setText("付款（RoboForm）");
         payButton.setAllCaps(false);
-        payButton.setOnClickListener(v -> openPayPalOnWatch());
+        payButton.setOnClickListener(v -> openPayPalWithRoboForm());
         root.addView(payButton, matchWrap(dp(12)));
 
         TextView note = new TextView(this);
-        note.setText("收款人已锁定为 2137765821，不能修改。登录和最终付款确认仍由 PayPal 官方页面完成。");
+        note.setText("收款人锁定为 2137765821。PayPal 页面只交给手表上的 RoboForm 打开；密码由 RoboForm 管理，本应用不读取或保存 PayPal 密码。");
         note.setTextSize(12);
         note.setTextColor(0xFF9E9E9E);
         note.setGravity(Gravity.CENTER);
@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
         setContentView(scroll);
     }
 
-    private void openPayPalOnWatch() {
+    private void openPayPalWithRoboForm() {
         String amountRaw = amountInput.getText().toString().trim();
 
         final BigDecimal amount;
@@ -99,15 +99,15 @@ public class MainActivity extends Activity {
         Uri uri = Uri.parse("https://www.paypal.me/" + FIXED_RECIPIENT + "/" + Uri.encode(amountText + "USD"));
 
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        intent.setPackage(SAMSUNG_INTERNET_PACKAGE);
+        intent.setPackage(ROBOFORM_PACKAGE);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
 
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            toast("请先在手表上安装 Samsung Internet");
+            toast("请先在手表上安装最新版 RoboForm");
         } catch (Exception e) {
-            toast("无法在手表浏览器打开 PayPal");
+            toast("无法用 RoboForm 打开 PayPal");
         }
     }
 
