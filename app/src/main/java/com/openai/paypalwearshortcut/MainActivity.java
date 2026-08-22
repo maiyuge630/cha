@@ -82,21 +82,15 @@ public class MainActivity extends Activity {
     }
 
     private void openPayPalOnWatch() {
-        String amountRaw = amountInput.getText().toString().trim();
-
         final BigDecimal amount;
         try {
-            amount = new BigDecimal(amountRaw);
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new NumberFormatException();
-            }
+            amount = PaymentLink.parseAmount(amountInput.getText().toString());
         } catch (Exception e) {
             toast("请输入正确的美元金额");
             return;
         }
 
-        String amountText = amount.stripTrailingZeros().toPlainString();
-        Uri uri = Uri.parse("https://www.paypal.me/" + FIXED_RECIPIENT + "/" + Uri.encode(amountText + "USD"));
+        Uri uri = Uri.parse(PaymentLink.buildPayPalMeUrl(FIXED_RECIPIENT, amount));
 
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.setPackage(SAMSUNG_INTERNET_PACKAGE);
