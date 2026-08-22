@@ -1,8 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.type.watch" android:required="true" />
+
+    <queries>
+        <package android:name="com.sec.android.app.sbrowser" />
+    </queries>
+
     <application
         android:allowBackup="false"
         android:label="PayPal USD"
+        android:usesCleartextTraffic="false"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity
             android:name=".MainActivity"
