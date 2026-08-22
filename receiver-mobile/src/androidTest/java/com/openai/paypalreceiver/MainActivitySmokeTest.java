@@ -16,7 +16,7 @@ public class MainActivitySmokeTest {
     @Test
     public void launchesSetupScreen() {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
-            onView(withText("PayPal 收款提醒 · 手机端")).check(matches(isDisplayed()));
+            onView(withText("PayPal 收款 → BOA · 手机端")).check(matches(isDisplayed()));
             onView(withText("开启通知访问")).check(matches(isDisplayed()));
             onView(withText("发送测试收款提醒到手表")).check(matches(isDisplayed()));
         }
