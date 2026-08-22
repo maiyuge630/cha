@@ -18,10 +18,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-    static final String EXTRA_OPEN_PAYPAL = "open_paypal";
+    static final String EXTRA_OPEN_WITHDRAW = "open_withdraw";
+    static final String PAYPAL_WITHDRAW_URL = "https://www.paypal.com/myaccount/money/balances/withdraw";
     private static final int REQUEST_NOTIFICATIONS = 10;
     private static final String SAMSUNG_INTERNET_PACKAGE = "com.sec.android.app.sbrowser";
-    private static final String PAYPAL_ACTIVITY_URL = "https://www.paypal.com/myaccount/activities/";
 
     private TextView statusView;
 
@@ -29,8 +29,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         buildUi();
-        if (getIntent() != null && getIntent().getBooleanExtra(EXTRA_OPEN_PAYPAL, false)) {
-            openPayPalActivity();
+        if (getIntent() != null && getIntent().getBooleanExtra(EXTRA_OPEN_WITHDRAW, false)) {
+            openPayPalWithdraw();
         }
     }
 
@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
         TextView title = new TextView(this);
-        title.setText("PayPal 收款提醒");
+        title.setText("PayPal 收款 → BOA");
         title.setTextSize(21);
         title.setTextColor(Color.WHITE);
         title.setGravity(Gravity.CENTER);
@@ -71,14 +71,14 @@ public class MainActivity extends Activity {
         permissionButton.setOnClickListener(v -> requestNotificationPermission());
         root.addView(permissionButton, matchWrap(dp(10)));
 
-        Button activityButton = new Button(this);
-        activityButton.setText("打开 PayPal 交易记录");
-        activityButton.setAllCaps(false);
-        activityButton.setOnClickListener(v -> openPayPalActivity());
-        root.addView(activityButton, matchWrap(dp(14)));
+        Button withdrawButton = new Button(this);
+        withdrawButton.setText("打开 PayPal 提现到 BOA");
+        withdrawButton.setAllCaps(false);
+        withdrawButton.setOnClickListener(v -> openPayPalWithdraw());
+        root.addView(withdrawButton, matchWrap(dp(14)));
 
         TextView note = new TextView(this);
-        note.setText("手机收到 PayPal 收款通知后，这里会自动弹提醒。点提醒会在手表 Samsung Internet 打开 PayPal 交易记录；真正的接受/确认仍在 PayPal 官方页面完成。");
+        note.setText("手机收到 PayPal 收款通知后，手表会提示“收到钱 · 点此提现到 BOA”。点击后直接打开 PayPal 官方提现入口。BOA 需要提前在 PayPal 里关联；银行选择、金额、标准/即时转账和最终确认仍由 PayPal 官方页面完成。");
         note.setTextSize(12);
         note.setTextColor(0xFFBDBDBD);
         note.setGravity(Gravity.CENTER);
@@ -101,12 +101,12 @@ public class MainActivity extends Activity {
         boolean allowed = Build.VERSION.SDK_INT < 33
                 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
         statusView.setText(allowed
-                ? "手表通知：已允许 ✓\n等待手机端 PayPal 收款提醒"
+                ? "手表通知：已允许 ✓\n等待 PayPal 收款提醒"
                 : "手表通知：未允许\n请点下面按钮，只需设置一次");
     }
 
-    private void openPayPalActivity() {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(PAYPAL_ACTIVITY_URL));
+    private void openPayPalWithdraw() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(PAYPAL_WITHDRAW_URL));
         intent.setPackage(SAMSUNG_INTERNET_PACKAGE);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         try {
@@ -114,7 +114,7 @@ public class MainActivity extends Activity {
         } catch (ActivityNotFoundException e) {
             toast("请先在手表上安装 Samsung Internet");
         } catch (Exception e) {
-            toast("无法打开 PayPal 交易记录");
+            toast("无法打开 PayPal 提现页面");
         }
     }
 
