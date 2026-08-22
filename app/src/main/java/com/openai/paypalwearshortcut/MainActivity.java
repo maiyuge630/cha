@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 
 public class MainActivity extends Activity {
     private static final String SAMSUNG_INTERNET_PACKAGE = "com.sec.android.app.sbrowser";
-    private static final String FIXED_RECIPIENT = "213776821";
+    private static final String FIXED_RECIPIENT = "2137765821";
 
     private EditText amountInput;
 
@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
         root.addView(payButton, matchWrap(dp(12)));
 
         TextView note = new TextView(this);
-        note.setText("收款人已锁定为 213776821，不能修改。登录和最终付款确认仍由 PayPal 官方页面完成。");
+        note.setText("收款人已锁定为 2137765821，不能修改。登录和最终付款确认仍由 PayPal 官方页面完成。");
         note.setTextSize(12);
         note.setTextColor(0xFF9E9E9E);
         note.setGravity(Gravity.CENTER);
