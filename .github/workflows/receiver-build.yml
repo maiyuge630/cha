@@ -23,7 +23,7 @@ jobs:
       - name: Upload receiver pair
         uses: actions/upload-artifact@v4
         with:
-          name: PayPalReceiver-v0.1.0-phone-and-watch
+          name: PayPalReceiver-v0.2.0-BOA-phone-and-watch
           path: |
             receiver-mobile/build/outputs/apk/debug/receiver-mobile-debug.apk
             receiver-wear/build/outputs/apk/debug/receiver-wear-debug.apk
